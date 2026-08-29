@@ -1,15 +1,26 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
+
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0"
+  >
 
   <title>🎤 Speaking Practice</title>
 
   <style>
+
+    * {
+      box-sizing: border-box;
+    }
+
     body {
+      margin: 0;
+      padding: 30px 15px;
       font-family: Arial, sans-serif;
-      padding: 30px;
       background: #f7f7f7;
       color: #111;
     }
@@ -23,11 +34,23 @@
       background: white;
       padding: 30px;
       border-radius: 18px;
-      box-shadow: 0 3px 15px rgba(0,0,0,0.08);
+      box-shadow:
+        0 3px 15px rgba(0,0,0,0.08);
     }
 
     h2 {
       margin-top: 0;
+    }
+
+    .label {
+      font-size: 12px;
+      color: #777;
+      margin-top: 20px;
+      margin-bottom: 8px;
+    }
+
+    .text {
+      line-height: 1.7;
     }
 
     .mic {
@@ -47,79 +70,179 @@
       background: #d22;
     }
 
+    .mic:disabled {
+      opacity: 0.5;
+      cursor: default;
+    }
+
     .status {
       text-align: center;
       color: #777;
       margin-bottom: 20px;
+      line-height: 1.5;
     }
 
     textarea {
       width: 100%;
       height: 130px;
-      box-sizing: border-box;
       padding: 15px;
       font-size: 16px;
       border: 1px solid #ddd;
       border-radius: 10px;
+      resize: vertical;
     }
+
+    .button {
+      width: 100%;
+      margin-top: 15px;
+      padding: 15px;
+      border: none;
+      border-radius: 10px;
+      background: #111;
+      color: white;
+      font-size: 15px;
+      cursor: pointer;
+    }
+
+    .button:disabled {
+      background: #999;
+      cursor: default;
+    }
+
+    .result {
+      margin-top: 25px;
+      padding-top: 25px;
+      border-top: 1px solid #eee;
+      line-height: 1.7;
+    }
+
+    .hidden {
+      display: none;
+    }
+
   </style>
+
 </head>
+
 
 <body>
 
 <div class="container">
+
   <div class="card">
 
     <h2>🎤 Speaking Practice</h2>
 
-    <p>
+    <div class="label">
+      Microphone Test
+    </div>
+
+    <div class="text">
       Click the microphone and speak in English.
-    </p>
+    </div>
+
 
     <button
       id="micButton"
       class="mic"
-      onclick="toggleRecording()">
+      onclick="toggleRecording()"
+    >
       🎙️
     </button>
 
-    <div id="status" class="status">
+
+    <div
+      id="status"
+      class="status"
+    >
       Click the microphone to start recording.
     </div>
 
+
     <textarea
       id="answer"
-      placeholder="Your speech will appear here...">
-    </textarea>
+      placeholder="Your speech will appear here..."
+    ></textarea>
+
+
+    <button
+      id="transcribeButton"
+      class="button"
+      onclick="sendAudioToGAS()"
+      disabled
+    >
+      📝 Convert Speech to Text
+    </button>
+
+
+    <div
+      id="result"
+      class="result hidden"
+    ></div>
 
   </div>
+
 </div>
 
+
 <script>
+
+/* ========================================
+   GAS URL
+======================================== */
 
 const GAS_URL =
   "https://script.google.com/macros/s/AKfycbxOApj_Cg4HvRFKS725KMCZhHW5zoZSGfgGGcqHrlIMa596ApJMie7wdvcoCzO8yA6ZmQ/exec";
 
+
+/* ========================================
+   VARIABLES
+======================================== */
+
 let mediaRecorder = null;
+
 let audioChunks = [];
+
+let audioBlob = null;
+
 let isRecording = false;
 
 
-/* =========================
-   RECORD
-========================= */
+/* ========================================
+   ELEMENTS
+======================================== */
+
+const micButton =
+  document.getElementById(
+    "micButton"
+  );
+
+const status =
+  document.getElementById(
+    "status"
+  );
+
+const answer =
+  document.getElementById(
+    "answer"
+  );
+
+const transcribeButton =
+  document.getElementById(
+    "transcribeButton"
+  );
+
+const result =
+  document.getElementById(
+    "result"
+  );
+
+
+/* ========================================
+   RECORDING
+======================================== */
 
 async function toggleRecording() {
-
-  const button =
-    document.getElementById("micButton");
-
-  const status =
-    document.getElementById("status");
-
-  const answer =
-    document.getElementById("answer");
-
 
   if (isRecording) {
 
@@ -137,24 +260,54 @@ async function toggleRecording() {
 
 
     const stream =
-      await navigator.mediaDevices.getUserMedia({
-        audio: true
-      });
+      await navigator.mediaDevices
+        .getUserMedia({
+          audio: true
+        });
 
 
     audioChunks = [];
 
+    audioBlob = null;
+
+
+    let options = {};
+
+
+    /*
+     * Chrome usually supports webm.
+     */
+
+    if (
+      MediaRecorder.isTypeSupported(
+        "audio/webm;codecs=opus"
+      )
+    ) {
+
+      options.mimeType =
+        "audio/webm;codecs=opus";
+
+    }
+
 
     mediaRecorder =
-      new MediaRecorder(stream);
+      new MediaRecorder(
+        stream,
+        options
+      );
 
 
     mediaRecorder.ondataavailable =
       function(event) {
 
-        if (event.data.size > 0) {
+        if (
+          event.data &&
+          event.data.size > 0
+        ) {
 
-          audioChunks.push(event.data);
+          audioChunks.push(
+            event.data
+          );
 
         }
 
@@ -162,100 +315,44 @@ async function toggleRecording() {
 
 
     mediaRecorder.onstop =
-      async function() {
+      function() {
 
-        stream
-          .getTracks()
-          .forEach(function(track) {
-            track.stop();
-          });
-
-
-        status.innerText =
-          "🤖 Sending audio to AI...";
-
-
-        const audioBlob =
+        audioBlob =
           new Blob(
             audioChunks,
-            { type: "audio/webm" }
+            {
+              type:
+                mediaRecorder.mimeType ||
+                "audio/webm"
+            }
           );
 
 
-        try {
-
-          const base64 =
-            await blobToBase64(audioBlob);
-
-
-          const response =
-            await fetch(
-              GAS_URL,
-              {
-                method: "POST",
-
-                headers: {
-                  "Content-Type":
-                    "text/plain;charset=utf-8"
-                },
-
-                body: JSON.stringify({
-
-                  action: "transcribe",
-
-                  audio: base64,
-
-                  mimeType:
-                    "audio/webm"
-
-                })
-
-              }
-            );
+        stream
+          .getTracks()
+          .forEach(
+            function(track) {
+              track.stop();
+            }
+          );
 
 
-          if (!response.ok) {
+        isRecording = false;
 
-            throw new Error(
-              "HTTP " +
-              response.status
-            );
+        micButton
+          .classList
+          .remove("recording");
 
-          }
-
-
-          const result =
-            await response.json();
+        micButton.innerText =
+          "🎙️";
 
 
-          if (!result.success) {
-
-            throw new Error(
-              result.error ||
-              "Transcription failed"
-            );
-
-          }
+        transcribeButton.disabled =
+          false;
 
 
-          answer.value =
-            result.text || "";
-
-
-          status.innerText =
-            "✅ Speech converted to text.";
-
-
-        }
-        catch (error) {
-
-          console.error(error);
-
-          status.innerText =
-            "❌ " +
-            error.message;
-
-        }
+        status.innerText =
+          "✅ Recording completed. Click the button below.";
 
       };
 
@@ -265,18 +362,30 @@ async function toggleRecording() {
 
     isRecording = true;
 
-    button.classList.add("recording");
+    micButton
+      .classList
+      .add("recording");
 
-    button.innerText = "⏹️";
+    micButton.innerText =
+      "⏹️";
+
+
+    transcribeButton.disabled =
+      true;
+
 
     status.innerText =
       "🔴 Recording... Speak in English";
 
-
   }
+
   catch (error) {
 
-    console.error(error);
+    console.error(
+      "Microphone error:",
+      error
+    );
+
 
     status.innerText =
       "❌ Microphone error: " +
@@ -289,39 +398,28 @@ async function toggleRecording() {
 }
 
 
-/* =========================
+/* ========================================
    STOP
-========================= */
+======================================== */
 
 function stopRecording() {
 
   if (
     mediaRecorder &&
-    mediaRecorder.state !== "inactive"
+    mediaRecorder.state !==
+      "inactive"
   ) {
 
     mediaRecorder.stop();
 
   }
 
-
-  isRecording = false;
-
-
-  const button =
-    document.getElementById("micButton");
-
-
-  button.classList.remove("recording");
-
-  button.innerText = "🎙️";
-
 }
 
 
-/* =========================
+/* ========================================
    BLOB → BASE64
-========================= */
+======================================== */
 
 function blobToBase64(blob) {
 
@@ -339,8 +437,14 @@ function blobToBase64(blob) {
             reader.result;
 
 
+          /*
+           * Remove:
+           * data:audio/webm;base64,
+           */
+
           const base64 =
-            result.split(",")[1];
+            result
+              .split(",")[1];
 
 
           resolve(base64);
@@ -349,7 +453,11 @@ function blobToBase64(blob) {
 
 
       reader.onerror =
-        reject;
+        function(error) {
+
+          reject(error);
+
+        };
 
 
       reader.readAsDataURL(blob);
@@ -359,7 +467,213 @@ function blobToBase64(blob) {
 
 }
 
+
+/* ========================================
+   SEND AUDIO TO GAS
+======================================== */
+
+async function sendAudioToGAS() {
+
+  if (!audioBlob) {
+
+    status.innerText =
+      "❌ No audio recorded.";
+
+    return;
+
+  }
+
+
+  transcribeButton.disabled =
+    true;
+
+
+  micButton.disabled =
+    true;
+
+
+  status.innerText =
+    "🤖 Converting your speech to text...";
+
+
+  try {
+
+    const base64Audio =
+      await blobToBase64(
+        audioBlob
+      );
+
+
+    console.log(
+      "Audio size:",
+      base64Audio.length
+    );
+
+
+    /*
+     * Send to GAS.
+     */
+
+    const response =
+      await fetch(
+        GAS_URL,
+        {
+
+          method: "POST",
+
+          headers: {
+
+            "Content-Type":
+              "text/plain;charset=utf-8"
+
+          },
+
+          body:
+            JSON.stringify({
+
+              action:
+                "transcribe",
+
+              audio:
+                base64Audio,
+
+              mimeType:
+                audioBlob.type ||
+                "audio/webm"
+
+            })
+
+        }
+      );
+
+
+    if (!response.ok) {
+
+      throw new Error(
+        "HTTP " +
+        response.status
+      );
+
+    }
+
+
+    const data =
+      await response.json();
+
+
+    console.log(
+      "GAS response:",
+      data
+    );
+
+
+    if (
+      !data.success
+    ) {
+
+      throw new Error(
+        data.error ||
+        "Transcription failed."
+      );
+
+    }
+
+
+    answer.value =
+      data.text || "";
+
+
+    status.innerText =
+      "✅ Speech converted successfully.";
+
+
+    result.classList
+      .remove("hidden");
+
+
+    result.innerHTML =
+      "<b>Transcription:</b><br>" +
+      escapeHtml(
+        data.text || ""
+      );
+
+  }
+
+  catch (error) {
+
+    console.error(
+      "Fetch error:",
+      error
+    );
+
+
+    status.innerText =
+      "❌ Failed to fetch: " +
+      error.message;
+
+
+    result.classList
+      .remove("hidden");
+
+
+    result.innerHTML =
+      "<b>Error</b><br>" +
+      escapeHtml(
+        error.message
+      );
+
+  }
+
+  finally {
+
+    transcribeButton.disabled =
+      false;
+
+    micButton.disabled =
+      false;
+
+  }
+
+}
+
+
+/* ========================================
+   ESCAPE HTML
+======================================== */
+
+function escapeHtml(text) {
+
+  return String(text || "")
+
+    .replace(
+      /&/g,
+      "&amp;"
+    )
+
+    .replace(
+      /</g,
+      "&lt;"
+    )
+
+    .replace(
+      />/g,
+      "&gt;"
+    )
+
+    .replace(
+      /"/g,
+      "&quot;"
+    )
+
+    .replace(
+      /'/g,
+      "&#039;"
+    );
+
+}
+
 </script>
 
 </body>
+
 </html>
