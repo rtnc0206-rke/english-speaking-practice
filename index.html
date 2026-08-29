@@ -1,370 +1,125 @@
 <!DOCTYPE html>
-
-<html lang="en">
-
+<html>
 <head>
-
   <meta charset="UTF-8">
-
-  <meta
-    name="viewport"
-    content="width=device-width, initial-scale=1.0"
-  >
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
   <title>🎤 Speaking Practice</title>
 
-
   <style>
-
-    * {
-      box-sizing: border-box;
-    }
-
-
     body {
-
-      font-family:
-        -apple-system,
-        BlinkMacSystemFont,
-        "Segoe UI",
-        Arial,
-        sans-serif;
-
-      margin: 0;
-
-      padding: 30px 15px;
-
+      font-family: Arial, sans-serif;
+      padding: 30px;
       background: #f7f7f7;
-
       color: #111;
-
     }
-
 
     .container {
-
-      max-width: 650px;
-
-      margin: 0 auto;
-
+      max-width: 600px;
+      margin: auto;
     }
-
 
     .card {
-
       background: white;
-
       padding: 30px;
-
       border-radius: 18px;
-
-      box-shadow:
-        0 3px 15px
-        rgba(0,0,0,0.08);
-
+      box-shadow: 0 3px 15px rgba(0,0,0,0.08);
     }
-
 
     h2 {
-
       margin-top: 0;
-
-      margin-bottom: 25px;
-
     }
-
-
-    .label {
-
-      font-size: 12px;
-
-      font-weight: 600;
-
-      color: #777;
-
-      margin-top: 20px;
-
-      margin-bottom: 8px;
-
-      text-transform: uppercase;
-
-      letter-spacing: 0.5px;
-
-    }
-
-
-    .text {
-
-      line-height: 1.7;
-
-      font-size: 16px;
-
-    }
-
 
     .mic {
-
       width: 90px;
-
       height: 90px;
-
       border-radius: 50%;
-
       border: none;
-
       background: #111;
-
       color: white;
-
       font-size: 30px;
-
       cursor: pointer;
-
       display: block;
-
       margin: 30px auto 15px;
-
-      transition: 0.2s;
-
     }
-
-
-    .mic:hover {
-
-      transform: scale(1.05);
-
-    }
-
 
     .mic.recording {
-
       background: #d22;
-
     }
-
-
-    .mic:disabled {
-
-      background: #999;
-
-      cursor: not-allowed;
-
-    }
-
 
     .status {
-
       text-align: center;
-
       color: #777;
-
       margin-bottom: 20px;
-
-      min-height: 24px;
-
     }
-
 
     textarea {
-
       width: 100%;
-
-      height: 150px;
-
+      height: 130px;
+      box-sizing: border-box;
       padding: 15px;
-
       font-size: 16px;
-
-      line-height: 1.6;
-
       border: 1px solid #ddd;
-
       border-radius: 10px;
-
-      resize: vertical;
-
-      font-family: inherit;
-
     }
-
-
-    textarea:focus {
-
-      outline: none;
-
-      border-color: #111;
-
-    }
-
-
-    .send {
-
-      width: 100%;
-
-      margin-top: 15px;
-
-      padding: 15px;
-
-      border: none;
-
-      border-radius: 10px;
-
-      background: #111;
-
-      color: white;
-
-      font-size: 15px;
-
-      cursor: pointer;
-
-    }
-
-
-    .send:disabled {
-
-      background: #999;
-
-      cursor: not-allowed;
-
-    }
-
-
-    .result {
-
-      display: none;
-
-      margin-top: 25px;
-
-      padding-top: 25px;
-
-      border-top: 1px solid #eee;
-
-    }
-
-
-    .success {
-
-      color: #16803c;
-
-    }
-
-
-    .error {
-
-      color: #c62828;
-
-    }
-
   </style>
-
 </head>
-
 
 <body>
 
-
 <div class="container">
-
-
   <div class="card">
 
+    <h2>🎤 Speaking Practice</h2>
 
-    <h2>
-      🎤 Speaking Practice
-    </h2>
-
-
-    <div class="label">
-      Microphone
-    </div>
-
-
-    <div class="text">
-
-      Click the microphone and
-      speak naturally in English.
-
-    </div>
-
+    <p>
+      Click the microphone and speak in English.
+    </p>
 
     <button
       id="micButton"
       class="mic"
-      type="button"
-      onclick="toggleRecording()"
-    >
+      onclick="toggleRecording()">
       🎙️
     </button>
 
-
-    <div
-      id="status"
-      class="status"
-    >
-      Click the microphone to start.
+    <div id="status" class="status">
+      Click the microphone to start recording.
     </div>
-
 
     <textarea
       id="answer"
-      placeholder="Your speech will appear here..."
-    ></textarea>
-
-
-    <button
-      id="sendButton"
-      class="send"
-      type="button"
-      onclick="sendAgain()"
-    >
-      🔄 Convert Again
-    </button>
-
-
-    <div
-      id="result"
-      class="result"
-    ></div>
-
+      placeholder="Your speech will appear here...">
+    </textarea>
 
   </div>
-
-
 </div>
 
-
-
 <script>
-
-
-/* =================================
-   GAS URL
-================================= */
 
 const GAS_URL =
   "https://script.google.com/macros/s/AKfycbxOApj_Cg4HvRFKS725KMCZhHW5zoZSGfgGGcqHrlIMa596ApJMie7wdvcoCzO8yA6ZmQ/exec";
 
-
-
-/* =================================
-   VARIABLES
-================================= */
-
 let mediaRecorder = null;
-
 let audioChunks = [];
-
-let audioBlob = null;
-
 let isRecording = false;
 
 
-
-/* =================================
-   START / STOP
-================================= */
+/* =========================
+   RECORD
+========================= */
 
 async function toggleRecording() {
+
+  const button =
+    document.getElementById("micButton");
+
+  const status =
+    document.getElementById("status");
+
+  const answer =
+    document.getElementById("answer");
+
 
   if (isRecording) {
 
@@ -375,26 +130,7 @@ async function toggleRecording() {
   }
 
 
-  const button =
-    document.getElementById("micButton");
-
-  const status =
-    document.getElementById("status");
-
-
   try {
-
-    if (
-      !navigator.mediaDevices ||
-      !navigator.mediaDevices.getUserMedia
-    ) {
-
-      throw new Error(
-        "Your browser does not support microphone access."
-      );
-
-    }
-
 
     status.innerText =
       "🎙️ Requesting microphone access...";
@@ -409,29 +145,8 @@ async function toggleRecording() {
     audioChunks = [];
 
 
-    let mimeType =
-      "audio/webm";
-
-
-    if (
-      MediaRecorder.isTypeSupported(
-        "audio/webm;codecs=opus"
-      )
-    ) {
-
-      mimeType =
-        "audio/webm;codecs=opus";
-
-    }
-
-
     mediaRecorder =
-      new MediaRecorder(
-        stream,
-        {
-          mimeType: mimeType
-        }
-      );
+      new MediaRecorder(stream);
 
 
     mediaRecorder.ondataavailable =
@@ -439,9 +154,7 @@ async function toggleRecording() {
 
         if (event.data.size > 0) {
 
-          audioChunks.push(
-            event.data
-          );
+          audioChunks.push(event.data);
 
         }
 
@@ -453,28 +166,96 @@ async function toggleRecording() {
 
         stream
           .getTracks()
-          .forEach(
-            function(track) {
-              track.stop();
-            }
-          );
-
-
-        audioBlob =
-          new Blob(
-            audioChunks,
-            {
-              type:
-                mediaRecorder.mimeType
-            }
-          );
+          .forEach(function(track) {
+            track.stop();
+          });
 
 
         status.innerText =
-          "⏳ Converting speech to text...";
+          "🤖 Sending audio to AI...";
 
 
-        await sendAudioToGAS();
+        const audioBlob =
+          new Blob(
+            audioChunks,
+            { type: "audio/webm" }
+          );
+
+
+        try {
+
+          const base64 =
+            await blobToBase64(audioBlob);
+
+
+          const response =
+            await fetch(
+              GAS_URL,
+              {
+                method: "POST",
+
+                headers: {
+                  "Content-Type":
+                    "text/plain;charset=utf-8"
+                },
+
+                body: JSON.stringify({
+
+                  action: "transcribe",
+
+                  audio: base64,
+
+                  mimeType:
+                    "audio/webm"
+
+                })
+
+              }
+            );
+
+
+          if (!response.ok) {
+
+            throw new Error(
+              "HTTP " +
+              response.status
+            );
+
+          }
+
+
+          const result =
+            await response.json();
+
+
+          if (!result.success) {
+
+            throw new Error(
+              result.error ||
+              "Transcription failed"
+            );
+
+          }
+
+
+          answer.value =
+            result.text || "";
+
+
+          status.innerText =
+            "✅ Speech converted to text.";
+
+
+        }
+        catch (error) {
+
+          console.error(error);
+
+          status.innerText =
+            "❌ " +
+            error.message;
+
+        }
 
       };
 
@@ -484,29 +265,21 @@ async function toggleRecording() {
 
     isRecording = true;
 
+    button.classList.add("recording");
 
-    button.classList.add(
-      "recording"
-    );
-
-
-    button.innerText =
-      "⏹️";
-
+    button.innerText = "⏹️";
 
     status.innerText =
       "🔴 Recording... Speak in English";
 
 
   }
-
   catch (error) {
 
     console.error(error);
 
-
     status.innerText =
-      "❌ " +
+      "❌ Microphone error: " +
       error.name +
       " — " +
       error.message;
@@ -516,10 +289,9 @@ async function toggleRecording() {
 }
 
 
-
-/* =================================
+/* =========================
    STOP
-================================= */
+========================= */
 
 function stopRecording() {
 
@@ -540,197 +312,16 @@ function stopRecording() {
     document.getElementById("micButton");
 
 
-  button.classList.remove(
-    "recording"
-  );
+  button.classList.remove("recording");
 
-
-  button.innerText =
-    "🎙️";
+  button.innerText = "🎙️";
 
 }
 
 
-
-/* =================================
-   SEND AUDIO
-================================= */
-
-async function sendAudioToGAS() {
-
-  const status =
-    document.getElementById("status");
-
-  const button =
-    document.getElementById("micButton");
-
-
-  if (!audioBlob) {
-
-    status.innerText =
-      "❌ No audio recorded.";
-
-    return;
-
-  }
-
-
-  button.disabled = true;
-
-
-  try {
-
-    const base64Audio =
-      await blobToBase64(
-        audioBlob
-      );
-
-
-    const response =
-      await fetch(
-        GAS_URL,
-        {
-          method: "POST",
-
-          headers: {
-            "Content-Type":
-              "text/plain;charset=utf-8"
-          },
-
-          body:
-            JSON.stringify({
-              action: "transcribe",
-
-              audio:
-                base64Audio,
-
-              mimeType:
-                audioBlob.type ||
-                "audio/webm"
-            })
-        }
-      );
-
-
-    const text =
-      await response.text();
-
-
-    console.log(
-      "GAS response:",
-      text
-    );
-
-
-    let result;
-
-
-    try {
-
-      result =
-        JSON.parse(text);
-
-    }
-
-    catch (error) {
-
-      throw new Error(
-        "GASからJSONではない回答が返りました:\n" +
-        text
-      );
-
-    }
-
-
-    if (!result.success) {
-
-      throw new Error(
-        result.error ||
-        "Transcription failed."
-      );
-
-    }
-
-
-    document.getElementById(
-      "answer"
-    ).value =
-      result.text;
-
-
-    status.innerText =
-      "✅ Speech converted to text.";
-
-
-    showResult(
-      "success",
-      "Your speech has been converted successfully."
-    );
-
-
-  }
-
-  catch (error) {
-
-    console.error(error);
-
-
-    status.innerText =
-      "❌ " +
-      error.message;
-
-
-    showResult(
-      "error",
-      error.message
-    );
-
-  }
-
-
-  finally {
-
-    button.disabled = false;
-
-  }
-
-}
-
-
-
-/* =================================
-   CONVERT AGAIN
-================================= */
-
-async function sendAgain() {
-
-  if (!audioBlob) {
-
-    document.getElementById(
-      "status"
-    ).innerText =
-      "❌ Please record your voice first.";
-
-    return;
-
-  }
-
-
-  document.getElementById(
-    "status"
-  ).innerText =
-    "⏳ Converting again...";
-
-
-  await sendAudioToGAS();
-
-}
-
-
-
-/* =================================
+/* =========================
    BLOB → BASE64
-================================= */
+========================= */
 
 function blobToBase64(blob) {
 
@@ -761,49 +352,14 @@ function blobToBase64(blob) {
         reject;
 
 
-      reader.readAsDataURL(
-        blob
-      );
+      reader.readAsDataURL(blob);
 
     }
   );
 
 }
 
-
-
-/* =================================
-   RESULT
-================================= */
-
-function showResult(
-  type,
-  message
-) {
-
-  const result =
-    document.getElementById(
-      "result"
-    );
-
-
-  result.style.display =
-    "block";
-
-
-  result.className =
-    "result " + type;
-
-
-  result.innerText =
-    message;
-
-}
-
-
 </script>
 
-
 </body>
-
 </html>
